@@ -21,10 +21,14 @@ base_model = InceptionV3(weights='imagenet',include_top=True)
 extactor_model = Model(inputs=base_model.input,outputs=base_model.get_layer('avg_pool').output)
 ```
 
-Conversion code
+Video to Training Input Conversion code
 
 ```python
 def pre_process(video_dir):
+
+    # ARGUMENT : video dir
+    # RETURNS  : X & y np data for Input 
+
     classes = []
     X = []
     y = []
@@ -116,17 +120,55 @@ def pre_process(video_dir):
     np.save("y_data",y)
 ```
 
+Now we have saved inputs of shape X > (N,2048) Y >One hot labels
+
+Training Code & Model
 
 
+```python
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, CSVLogger
+import time
+import os
+import numpy as np
+from keras.layers import Dense, Flatten, Dropout
+from keras.layers.recurrent import LSTM
+from keras.models import Sequential, load_model
+from keras.optimizers import Adam
+import sys
 
+X = np.load('X_data.npy')
+y = np.load('y_data.npy')
+
+X = np.squeeze(X)
+y = np.squeeze(y)
+
+model = Sequential()
+model.add(LSTM(2048, return_sequences=False,input_shape=X[0].shape,dropout=0.5))
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(len(y[0]), activation='softmax'))
+
+early_stopper = EarlyStopping(patience=5)
+
+
+adam_optimizer = Adam(lr=1e-5, decay=1e-6)
+
+model.compile(optimizer=adam_optimizer, loss='categorical_crossentropy', metrics=['accuracy']
+              
+model.fit(X,y,batch_size=32,validation_split=0.01,verbose=1,callbacks=[early_stopper],epochs=1000
 ```
+
+
+Making prediction with  model.predict() :
+
+
 Output should look something like this
 
-```
+
 BabyCrawling: 0.99
 Archery: 0.00
 ApplyEyeMakeup: 0.00
 ApplyLipstick: 0.00
-```
+
 
 
