@@ -164,11 +164,12 @@ Making prediction with  model.predict() :
 
 Output should look something like this
 
-
+```
 BabyCrawling: 0.99
 Archery: 0.00
 ApplyEyeMakeup: 0.00
 ApplyLipstick: 0.00
+```
 
 
 
